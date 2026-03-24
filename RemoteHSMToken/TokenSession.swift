@@ -6,198 +6,50 @@
 //
 
 import CryptoTokenKit
-import UserNotifications
-import OSLog
-import Security
-
-extension Logger {
-    private static let subsystem = "com.yubico.Authenticator.TokenExtension"
-    static let ctk = Logger(subsystem: subsystem, category: "CTK")
-
-    func yubilog(_ message: String) {
-        self.debug("YUBICO_DEBUG: \(message)")
-    }
-}
 
 class TokenSession: TKTokenSession, TKTokenSessionDelegate {
 
-    var signSessionEndTime = Date(timeIntervalSinceNow: -10) // create endTime in the past to force recreation of endTime when signing starts
-    var decryptSessionEndTime = Date(timeIntervalSinceNow: -10) // create endTime in the past to force recreation of endTime when decryption starts
-    
-    // These cases match the YKFPIVKeyType in the SDK
-    enum KeyType: UInt8 {
-        case rsa1024 = 0x06
-        case rsa2048 = 0x07
-        case eccp256 = 0x11
-        case eccp384 = 0x14
-        case unknown = 0x00
-    }
-    
-    enum OperationType: String {
-        case signData = "signData"
-        case decryptData = "decryptData"
-    }
-
-    func tokenSession(_ session: TKTokenSession, beginAuthFor operation: TKTokenOperation, constraint: Any) throws -> TKTokenAuthOperation {
-        Logger.ctk.yubilog("Extension: beginAuthFor operation: \(String(describing: operation)), constraint: \(String(describing: constraint))")
+   func tokenSession(_ session: TKTokenSession, beginAuthFor operation: TKTokenOperation, constraint: Any) throws -> TKTokenAuthOperation {
         // Insert code here to create an instance of TKTokenAuthOperation based on the specified operation and constraint.
-        // Note that the constraint was previously established when creating token configuration with keychain items.
-        return TKTokenPasswordAuthOperation()
+        // Note that the constraint was previously established when populating keychainContents during token initialization.
+        return TKTokenSmartCardPINAuthOperation()
     }
-
+    
     func tokenSession(_ session: TKTokenSession, supports operation: TKTokenOperation, keyObjectID: Any, algorithm: TKTokenKeyAlgorithm) -> Bool {
-        Logger.ctk.yubilog("Extension: supports operation: \(String(describing: operation)), keyObjectID: \(String(describing: keyObjectID))")
-        switch operation {
-            case .readData, .signData, .decryptData, .performKeyExchange:
-                return true
-            default:
-                return false
-        }
+        // Indicate whether the given key supports the specified operation and algorithm.
+        return true
     }
     
     func tokenSession(_ session: TKTokenSession, sign dataToSign: Data, keyObjectID: Any, algorithm: TKTokenKeyAlgorithm) throws -> Data {
-        Logger.ctk.yubilog("Extension: sign called")
-        // tokenSession() gets called multiple times even if we throw an error. This kludge make sure we only pop one notification.
-
-        // if we're not passed signSessionEndTime throw error and cancel all notifications
-        if signSessionEndTime.timeIntervalSinceNow > 0 {
-            Logger.ctk.yubilog("Extension: signSessionEndTime in future, throwing canceledByUser")
-            cancelAllNotifications()
-            throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-        }
-
-        // if we're past signSessionEndTime set a new endtime and reset
-        if signSessionEndTime.timeIntervalSinceNow < 0 {
-            Logger.ctk.yubilog("Extension: signSessionEndTime in past, resetting and setting new endtime")
-            reset()
-            signSessionEndTime = Date(timeIntervalSinceNow: 100)
-        }
+        var signature: Data?
         
-        guard let key = try? session.token.configuration.key(for: keyObjectID), let objectId = keyObjectID as? String else {
-            throw "No key for you!"
-        }
+        // Insert code here to sign data using the specified key and algorithm.
+        signature = nil
         
-        var possibleKeyType: KeyType? = nil
-        if key.keyType == kSecAttrKeyTypeRSA as String {
-            if key.keySizeInBits == 1024 {
-                possibleKeyType = .rsa1024
-            } else if key.keySizeInBits == 2048 {
-                possibleKeyType = .rsa2048
-            }
-        } else if key.keyType == kSecAttrKeyTypeECSECPrimeRandom as String {
-            if key.keySizeInBits == 256 {
-                possibleKeyType = .eccp256
-            } else if key.keySizeInBits == 384 {
-                possibleKeyType = .eccp384
-            }
+        if let signature = signature {
+            return signature
+        } else {
+            // If the operation failed for some reason, fill in an appropriate error like objectNotFound, corruptedData, etc.
+            // Note that responding with TKErrorCodeAuthenticationNeeded will trigger user authentication after which the current operation will be re-attempted.
+            throw NSError(domain: TKErrorDomain, code: TKError.Code.authenticationNeeded.rawValue, userInfo: nil)
         }
-        
-        guard let keyType = possibleKeyType, let secKeyAlgorithm = algorithm.secKeyAlgorithm else {
-            throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-        }
-
-        Logger.ctk.yubilog("Extension: sending notification for keyObjectID: \(objectId)")
-        sendNotificationWithData(dataToSign, keyObjectID: objectId, keyType: keyType, algorithm: secKeyAlgorithm)
-
-        let loopEndTime = Date(timeIntervalSinceNow: 95)
-        var runLoop = true
-        var tick = 0
-        while(runLoop) {
-            Thread.sleep(forTimeInterval: 1)
-            tick += 1
-            Logger.ctk.yubilog("Extension: polling tick \(tick)...")
-            if let userDefaults = UserDefaults(suiteName: "group.com.yubico.Authenticator"), let signedData = userDefaults.value(forKey: "signedData") as? Data {
-                Logger.ctk.yubilog("Extension: Got signedData from UserDefaults")
-                signSessionEndTime = Date(timeIntervalSinceNow: 3) // Set in future to block duplicate requests from CryptoTokenKit
-                reset()
-                return signedData
-            }
-            if let userDefaults = UserDefaults(suiteName: "group.com.yubico.Authenticator"), let _ = userDefaults.value(forKey: "canceledByUser") {
-                Logger.ctk.yubilog("Extension: Got canceledByUser!")
-                signSessionEndTime = Date(timeIntervalSinceNow: 3)
-                reset()
-                throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-            }
-
-            if loopEndTime < Date() {
-                Logger.ctk.yubilog("Extension: sign Loop timeout!")
-                runLoop = false
-            }
-        }
-        reset()
-        throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
     }
-
-    // Decryption
+    
     func tokenSession(_ session: TKTokenSession, decrypt ciphertext: Data, keyObjectID: Any, algorithm: TKTokenKeyAlgorithm) throws -> Data {
+        var plaintext: Data?
         
-        // if we're not passed decryptSessionEndTime throw error and cancel all notifications
-        if decryptSessionEndTime.timeIntervalSinceNow > 0 {
-            cancelAllNotifications()
-            throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-        }
-
-        // if we're past decryptSessionEndTime set a new endtime and reset
-        if decryptSessionEndTime.timeIntervalSinceNow < 0 {
-            reset()
-            decryptSessionEndTime = Date(timeIntervalSinceNow: 100)
-        }
+        // Insert code here to decrypt the ciphertext using the specified key and algorithm.
+        plaintext = nil
         
-        guard let key = try? session.token.configuration.key(for: keyObjectID), let objectId = keyObjectID as? String else {
-            throw "No key for you!"
+        if let plaintext = plaintext {
+            return plaintext
+        } else {
+            // If the operation failed for some reason, fill in an appropriate error like objectNotFound, corruptedData, etc.
+            // Note that responding with TKErrorCodeAuthenticationNeeded will trigger user authentication after which the current operation will be re-attempted.
+            throw NSError(domain: TKErrorDomain, code: TKError.Code.authenticationNeeded.rawValue, userInfo: nil)
         }
-        
-        var possibleKeyType: KeyType? = nil
-        if key.keyType == kSecAttrKeyTypeRSA as String {
-            if key.keySizeInBits == 1024 {
-                possibleKeyType = .rsa1024
-            } else if key.keySizeInBits == 2048 {
-                possibleKeyType = .rsa2048
-            }
-        } else if key.keyType == kSecAttrKeyTypeECSECPrimeRandom as String {
-            if key.keySizeInBits == 256 {
-                possibleKeyType = .eccp256
-            } else if key.keySizeInBits == 384 {
-                possibleKeyType = .eccp384
-            }
-        }
-        
-        guard let keyType = possibleKeyType,
-            let secKeyAlgorithm = targetSecKeyAlgorithm(algorithm, operation: .signData, keyType: keyType) else {
-            throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-        }
-
-        sendNotificationWithEncryptedData(ciphertext, keyObjectID: objectId, keyType: keyType, algorithm: secKeyAlgorithm)
-
-        let loopEndTime = Date(timeIntervalSinceNow: 95)
-        var runLoop = true
-        var tick = 0
-        while(runLoop) {
-            Thread.sleep(forTimeInterval: 1)
-            tick += 1
-            Logger.ctk.yubilog("Extension: decrypt polling tick \(tick)...")
-            if let userDefaults = UserDefaults(suiteName: "group.com.yubico.Authenticator"), let decryptedData = userDefaults.value(forKey: "decryptedData") as? Data {
-                Logger.ctk.yubilog("Extension: Got decryptedData from UserDefaults")
-                decryptSessionEndTime = Date(timeIntervalSinceNow: -10)
-                reset()
-                return decryptedData
-            }
-            if let userDefaults = UserDefaults(suiteName: "group.com.yubico.Authenticator"), let _ = userDefaults.value(forKey: "canceledByUser") {
-                Logger.ctk.yubilog("Extension: Got canceledByUser!")
-                decryptSessionEndTime = Date(timeIntervalSinceNow: 3)
-                reset()
-                throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
-            }
-
-            if loopEndTime < Date() {
-                Logger.ctk.yubilog("Extension: decrypt Loop timeout!")
-                runLoop = false
-            }
-        }
-        reset()
-        throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
     }
-
+    
     func tokenSession(_ session: TKTokenSession, performKeyExchange otherPartyPublicKeyData: Data, keyObjectID objectID: Any, algorithm: TKTokenKeyAlgorithm, parameters: TKTokenKeyExchangeParameters) throws -> Data {
         var secret: Data?
         
@@ -212,125 +64,5 @@ class TokenSession: TKTokenSession, TKTokenSessionDelegate {
             throw NSError(domain: TKErrorDomain, code: TKError.Code.authenticationNeeded.rawValue, userInfo: nil)
         }
     }
-    
-    private func reset() {
-        cancelAllNotifications()
-        if let userDefaults = UserDefaults(suiteName: "group.com.yubico.Authenticator") {
-            userDefaults.removeObject(forKey: "canceledByUser")
-            userDefaults.removeObject(forKey: "signedData")
-            userDefaults.removeObject(forKey: "decryptedData")
-        }
-    }
-    
-    private func cancelAllNotifications() {
-        let center = UNUserNotificationCenter.current()
-        center.removeAllDeliveredNotifications()
-        center.removeAllPendingNotificationRequests()
-    }
-    
-    // Send local notification with data to sign
-    private func sendNotificationWithData(_ data: Data, keyObjectID: String, keyType: KeyType, algorithm: SecKeyAlgorithm) {
-            cancelAllNotifications()
-        let categoryID = OperationType.signData.rawValue
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "YubiKey required")
-        content.body = String(localized: "Tap here to complete the request using your YubiKey.")
-        content.categoryIdentifier = categoryID
-        content.userInfo = ["operationType": categoryID, "data": data, "keyObjectID": keyObjectID, "algorithm": algorithm.rawValue, "keyType": keyType.rawValue];
-        content.sound = UNNotificationSound.default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
-        
-        let show = UNNotificationAction(identifier: categoryID, title:  String(localized: "Launch Yubico Authenticator"), options: .foreground)
-        let category = UNNotificationCategory(identifier: categoryID, actions: [show], intentIdentifiers: [])
-
-        let center = UNUserNotificationCenter.current()
-        center.setNotificationCategories([category])
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        center.add(request)
-    }
-    
-    // Send local notification with encryption data
-    private func sendNotificationWithEncryptedData(_ cipherData: Data, keyObjectID: String, keyType: KeyType, algorithm: SecKeyAlgorithm) {
-        cancelAllNotifications()
-        let categoryID = OperationType.decryptData.rawValue
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "YubiKey required")
-        content.body = String(localized: "Tap here to complete the decryption request using your YubiKey.")
-        content.categoryIdentifier = categoryID
-        content.userInfo = ["operationType": categoryID, "data": cipherData, "keyObjectID": keyObjectID, "algorithm": algorithm.rawValue, "keyType": keyType.rawValue];
-        content.sound = UNNotificationSound.default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
-        
-        let show = UNNotificationAction(identifier: categoryID, title:  String(localized: "Launch Yubico Authenticator"), options: .foreground)
-        let category = UNNotificationCategory(identifier: categoryID, actions: [show], intentIdentifiers: [])
-
-        let center = UNUserNotificationCenter.current()
-        center.setNotificationCategories([category])
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        center.add(request)
-    }
-
-    private func targetSecKeyAlgorithm(_ tokenAlgorithm: TKTokenKeyAlgorithm, operation: OperationType, keyType: KeyType) -> SecKeyAlgorithm? {
-        let candidates: [SecKeyAlgorithm]
-        switch operation {
-        case .signData:
-            switch keyType {
-            case .rsa1024, .rsa2048:
-                candidates = [
-                    .rsaSignatureMessagePSSSHA256,
-                    .rsaSignatureMessagePSSSHA384,
-                    .rsaSignatureMessagePSSSHA512,
-                    .rsaSignatureMessagePSSSHA224,
-                    .rsaSignatureMessagePSSSHA1,
-                    .rsaSignatureMessagePKCS1v15SHA256,
-                    .rsaSignatureMessagePKCS1v15SHA384,
-                    .rsaSignatureMessagePKCS1v15SHA512,
-                    .rsaSignatureMessagePKCS1v15SHA224,
-                    .rsaSignatureMessagePKCS1v15SHA1,
-                    .rsaSignatureDigestPKCS1v15SHA256,
-                    .rsaSignatureDigestPKCS1v15SHA384,
-                    .rsaSignatureDigestPKCS1v15SHA512,
-                    .rsaSignatureDigestPKCS1v15SHA224,
-                    .rsaSignatureDigestPKCS1v15SHA1,
-                    .rsaSignatureRaw,
-                ]
-            case .eccp256, .eccp384:
-                candidates = [
-                    .ecdsaSignatureMessageRFC6979SHA256,
-                    .ecdsaSignatureMessageRFC6979SHA384,
-                    .ecdsaSignatureMessageRFC6979SHA512,
-                    .ecdsaSignatureMessageRFC6979SHA224,
-                    .ecdsaSignatureMessageX962SHA256,
-                    .ecdsaSignatureMessageX962SHA384,
-                    .ecdsaSignatureMessageX962SHA512,
-                    .ecdsaSignatureMessageX962SHA224,
-                    .ecdsaSignatureMessageX962SHA1,
-                    .ecdsaSignatureDigestX962SHA256,
-                    .ecdsaSignatureDigestX962SHA384,
-                    .ecdsaSignatureDigestX962SHA512,
-                    .ecdsaSignatureDigestX962SHA224,
-                    .ecdsaSignatureDigestX962SHA1,
-                ]
-            case .unknown:
-                return nil
-            }
-        case .decryptData:
-            switch keyType {
-            case .rsa1024, .rsa2048:
-                candidates = [
-                    .rsaEncryptionPKCS1,
-                    .rsaEncryptionOAEPSHA256,
-                    .rsaEncryptionOAEPSHA384,
-                    .rsaEncryptionOAEPSHA512,
-                    .rsaEncryptionOAEPSHA224,
-                    .rsaEncryptionOAEPSHA1,
-                ]
-            case .eccp256, .eccp384, .unknown:
-                return nil
-            }
-        }
-        return candidates.first { tokenAlgorithm.isAlgorithm($0) }
-    }
 }
 
-extension String: Error {}
