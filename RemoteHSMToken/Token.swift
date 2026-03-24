@@ -13,13 +13,16 @@ final class Token: TKToken, TKTokenDelegate {
 
     /// Identificador estável do par certificado/chave no token (o mesmo para `TKTokenKeychainCertificate` e `TKTokenKeychainKey`).
     private static let signingObjectID = Data("remote-hsm-signing-key".utf8)
-    init(tokenDriver: TKTokenDriver, instanceID: TKToken.InstanceID) throws {
-        try self.init(tokenDriver: tokenDriver, instanceID: instanceID, items: Self.buildKeychainItems())
+    //removed init
+   static func create(tokenDriver: TKTokenDriver, instanceID: TKToken.InstanceID) throws -> Token {
+        let items = try buildKeychainItems()
+        return Token(tokenDriver: tokenDriver, instanceID: instanceID, keychainItems: items)
     }
-    private init(tokenDriver: TKTokenDriver, instanceID: TKToken.InstanceID, items: [TKTokenKeychainItem]) throws {
+    private init(tokenDriver: TKTokenDriver, instanceID: TKToken.InstanceID, keychainItems: [TKTokenKeychainItem]) {
         super.init(tokenDriver: tokenDriver, instanceID: instanceID)
-        keychainContents?.fill(with: items)
+        keychainContents?.fill(with: keychainItems)
     }
+
     func createSession(_ token: TKToken) throws -> TKTokenSession {
         TokenSession(token: self)
     }

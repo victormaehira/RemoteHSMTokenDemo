@@ -9,6 +9,6 @@ import CryptoTokenKit
 
 final class TokenDriver: TKTokenDriver, TKTokenDriverDelegate {
     func tokenDriver(_ driver: TKTokenDriver, tokenFor configuration: TKToken.Configuration) throws -> TKToken {
-        try Token(tokenDriver: self, instanceID: configuration.instanceID)
+        try Token.create(tokenDriver: self, instanceID: configuration.instanceID)
     }
 }
