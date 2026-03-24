@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0DCA19E12F71ECD000E3A891 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DCA19E02F71ECD000E3A891 /* CryptoTokenKit.framework */; };
+		0DCA19ED2F71ECD000E3A891 /* RemoteHSMToken.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0DCA19DE2F71ECD000E3A891 /* RemoteHSMToken.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0DCA19952F71D28700E3A891 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +26,46 @@
 			remoteGlobalIDString = 0DCA19822F71D28500E3A891;
 			remoteInfo = RemoteHSMTokenDemo;
 		};
+		0DCA19EB2F71ECD000E3A891 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0DCA197B2F71D28500E3A891 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0DCA19DD2F71ECD000E3A891;
+			remoteInfo = RemoteHSMToken;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0DCA19EE2F71ECD000E3A891 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0DCA19ED2F71ECD000E3A891 /* RemoteHSMToken.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0DCA19832F71D28500E3A891 /* RemoteHSMTokenDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemoteHSMTokenDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DCA19942F71D28700E3A891 /* RemoteHSMTokenDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemoteHSMTokenDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DCA199E2F71D28700E3A891 /* RemoteHSMTokenDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemoteHSMTokenDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0DCA19DE2F71ECD000E3A891 /* RemoteHSMToken.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RemoteHSMToken.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0DCA19E02F71ECD000E3A891 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0DCA19F12F71ECD000E3A891 /* Exceptions for "RemoteHSMToken" folder in "RemoteHSMToken" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0DCA19DD2F71ECD000E3A891 /* RemoteHSMToken */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0DCA19852F71D28500E3A891 /* RemoteHSMTokenDemo */ = {
@@ -43,6 +81,14 @@
 		0DCA19A12F71D28700E3A891 /* RemoteHSMTokenDemoUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = RemoteHSMTokenDemoUITests;
+			sourceTree = "<group>";
+		};
+		0DCA19E22F71ECD000E3A891 /* RemoteHSMToken */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0DCA19F12F71ECD000E3A891 /* Exceptions for "RemoteHSMToken" folder in "RemoteHSMToken" target */,
+			);
+			path = RemoteHSMToken;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +115,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0DCA19DB2F71ECD000E3A891 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0DCA19E12F71ECD000E3A891 /* CryptoTokenKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +132,8 @@
 				0DCA19852F71D28500E3A891 /* RemoteHSMTokenDemo */,
 				0DCA19972F71D28700E3A891 /* RemoteHSMTokenDemoTests */,
 				0DCA19A12F71D28700E3A891 /* RemoteHSMTokenDemoUITests */,
+				0DCA19E22F71ECD000E3A891 /* RemoteHSMToken */,
+				0DCA19DF2F71ECD000E3A891 /* Frameworks */,
 				0DCA19842F71D28500E3A891 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +144,17 @@
 				0DCA19832F71D28500E3A891 /* RemoteHSMTokenDemo.app */,
 				0DCA19942F71D28700E3A891 /* RemoteHSMTokenDemoTests.xctest */,
 				0DCA199E2F71D28700E3A891 /* RemoteHSMTokenDemoUITests.xctest */,
+				0DCA19DE2F71ECD000E3A891 /* RemoteHSMToken.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0DCA19DF2F71ECD000E3A891 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0DCA19E02F71ECD000E3A891 /* CryptoTokenKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +167,12 @@
 				0DCA197F2F71D28500E3A891 /* Sources */,
 				0DCA19802F71D28500E3A891 /* Frameworks */,
 				0DCA19812F71D28500E3A891 /* Resources */,
+				0DCA19EE2F71ECD000E3A891 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				0DCA19EC2F71ECD000E3A891 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				0DCA19852F71D28500E3A891 /* RemoteHSMTokenDemo */,
@@ -163,6 +230,28 @@
 			productReference = 0DCA199E2F71D28700E3A891 /* RemoteHSMTokenDemoUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		0DCA19DD2F71ECD000E3A891 /* RemoteHSMToken */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0DCA19F22F71ECD000E3A891 /* Build configuration list for PBXNativeTarget "RemoteHSMToken" */;
+			buildPhases = (
+				0DCA19DA2F71ECD000E3A891 /* Sources */,
+				0DCA19DB2F71ECD000E3A891 /* Frameworks */,
+				0DCA19DC2F71ECD000E3A891 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0DCA19E22F71ECD000E3A891 /* RemoteHSMToken */,
+			);
+			name = RemoteHSMToken;
+			packageProductDependencies = (
+			);
+			productName = RemoteHSMToken;
+			productReference = 0DCA19DE2F71ECD000E3A891 /* RemoteHSMToken.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +273,9 @@
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 0DCA19822F71D28500E3A891;
 					};
+					0DCA19DD2F71ECD000E3A891 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 				};
 			};
 			buildConfigurationList = 0DCA197E2F71D28500E3A891 /* Build configuration list for PBXProject "RemoteHSMTokenDemo" */;
@@ -203,6 +295,7 @@
 				0DCA19822F71D28500E3A891 /* RemoteHSMTokenDemo */,
 				0DCA19932F71D28700E3A891 /* RemoteHSMTokenDemoTests */,
 				0DCA199D2F71D28700E3A891 /* RemoteHSMTokenDemoUITests */,
+				0DCA19DD2F71ECD000E3A891 /* RemoteHSMToken */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +316,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0DCA199C2F71D28700E3A891 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0DCA19DC2F71ECD000E3A891 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +353,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0DCA19DA2F71ECD000E3A891 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +372,11 @@
 			isa = PBXTargetDependency;
 			target = 0DCA19822F71D28500E3A891 /* RemoteHSMTokenDemo */;
 			targetProxy = 0DCA199F2F71D28700E3A891 /* PBXContainerItemProxy */;
+		};
+		0DCA19EC2F71ECD000E3A891 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0DCA19DD2F71ECD000E3A891 /* RemoteHSMToken */;
+			targetProxy = 0DCA19EB2F71ECD000E3A891 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -509,6 +621,60 @@
 			};
 			name = Release;
 		};
+		0DCA19EF2F71ECD000E3A891 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RemoteHSMToken/RemoteHSMToken.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SY9CHW6UF7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemoteHSMToken/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RemoteHSMToken;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.RemoteHSMTokenDemo.RemoteHSMToken;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0DCA19F02F71ECD000E3A891 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RemoteHSMToken/RemoteHSMToken.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SY9CHW6UF7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemoteHSMToken/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RemoteHSMToken;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.RemoteHSMTokenDemo.RemoteHSMToken;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -544,6 +710,15 @@
 			buildConfigurations = (
 				0DCA19AF2F71D28700E3A891 /* Debug */,
 				0DCA19B02F71D28700E3A891 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0DCA19F22F71ECD000E3A891 /* Build configuration list for PBXNativeTarget "RemoteHSMToken" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0DCA19EF2F71ECD000E3A891 /* Debug */,
+				0DCA19F02F71ECD000E3A891 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
