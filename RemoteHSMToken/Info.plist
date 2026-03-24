@@ -6,8 +6,6 @@
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
-			<key>com.apple.ctk.aid</key>
-			<string>___VARIABLE_smartCardAID___</string>
 			<key>com.apple.ctk.class-id</key>
 			<string>com.example.RemoteHSMTokenDemo.RemoteHSMToken</string>
 			<key>com.apple.ctk.driver-class</key>
