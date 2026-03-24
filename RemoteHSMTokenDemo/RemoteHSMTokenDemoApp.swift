@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct RemoteHSMTokenDemoApp: App {
+    init() {
+        RemoteHSMTokenRegistration.registerDefaultToken()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
