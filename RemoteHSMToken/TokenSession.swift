@@ -8,6 +8,7 @@
 import CryptoTokenKit
 import UserNotifications
 import OSLog
+import Security
 
 extension Logger {
     private static let subsystem = "com.yubico.Authenticator.TokenExtension"
@@ -161,7 +162,8 @@ class TokenSession: TKTokenSession, TKTokenSessionDelegate {
             }
         }
         
-        guard let keyType = possibleKeyType, let secKeyAlgorithm = algorithm.secKeyAlgorithm else {
+        guard let keyType = possibleKeyType,
+            let secKeyAlgorithm = targetSecKeyAlgorithm(algorithm, operation: .signData, keyType: keyType) else {
             throw NSError(domain: TKErrorDomain, code: TKError.Code.canceledByUser.rawValue, userInfo: nil)
         }
 
@@ -266,6 +268,68 @@ class TokenSession: TKTokenSession, TKTokenSessionDelegate {
         center.setNotificationCategories([category])
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         center.add(request)
+    }
+
+    private func targetSecKeyAlgorithm(_ tokenAlgorithm: TKTokenKeyAlgorithm, operation: OperationType, keyType: KeyType) -> SecKeyAlgorithm? {
+        let candidates: [SecKeyAlgorithm]
+        switch operation {
+        case .signData:
+            switch keyType {
+            case .rsa1024, .rsa2048:
+                candidates = [
+                    .rsaSignatureMessagePSSSHA256,
+                    .rsaSignatureMessagePSSSHA384,
+                    .rsaSignatureMessagePSSSHA512,
+                    .rsaSignatureMessagePSSSHA224,
+                    .rsaSignatureMessagePSSSHA1,
+                    .rsaSignatureMessagePKCS1v15SHA256,
+                    .rsaSignatureMessagePKCS1v15SHA384,
+                    .rsaSignatureMessagePKCS1v15SHA512,
+                    .rsaSignatureMessagePKCS1v15SHA224,
+                    .rsaSignatureMessagePKCS1v15SHA1,
+                    .rsaSignatureDigestPKCS1v15SHA256,
+                    .rsaSignatureDigestPKCS1v15SHA384,
+                    .rsaSignatureDigestPKCS1v15SHA512,
+                    .rsaSignatureDigestPKCS1v15SHA224,
+                    .rsaSignatureDigestPKCS1v15SHA1,
+                    .rsaSignatureRaw,
+                ]
+            case .eccp256, .eccp384:
+                candidates = [
+                    .ecdsaSignatureMessageRFC6979SHA256,
+                    .ecdsaSignatureMessageRFC6979SHA384,
+                    .ecdsaSignatureMessageRFC6979SHA512,
+                    .ecdsaSignatureMessageRFC6979SHA224,
+                    .ecdsaSignatureMessageX962SHA256,
+                    .ecdsaSignatureMessageX962SHA384,
+                    .ecdsaSignatureMessageX962SHA512,
+                    .ecdsaSignatureMessageX962SHA224,
+                    .ecdsaSignatureMessageX962SHA1,
+                    .ecdsaSignatureDigestX962SHA256,
+                    .ecdsaSignatureDigestX962SHA384,
+                    .ecdsaSignatureDigestX962SHA512,
+                    .ecdsaSignatureDigestX962SHA224,
+                    .ecdsaSignatureDigestX962SHA1,
+                ]
+            case .unknown:
+                return nil
+            }
+        case .decryptData:
+            switch keyType {
+            case .rsa1024, .rsa2048:
+                candidates = [
+                    .rsaEncryptionPKCS1,
+                    .rsaEncryptionOAEPSHA256,
+                    .rsaEncryptionOAEPSHA384,
+                    .rsaEncryptionOAEPSHA512,
+                    .rsaEncryptionOAEPSHA224,
+                    .rsaEncryptionOAEPSHA1,
+                ]
+            case .eccp256, .eccp384, .unknown:
+                return nil
+            }
+        }
+        return candidates.first { tokenAlgorithm.isAlgorithm($0) }
     }
 }
 
